@@ -21,17 +21,15 @@ export const experimental_ppr = true;
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
 
-  const [post, { select: editorPosts }] = await Promise.all([
-    client.fetch(STARTUP_BY_ID_QUERY, { id }),
-    client.fetch(PLAYLIST_BY_SLUG_QUERY, {
-      slug: "game",
-    }),
+  const [post] = await Promise.all([
+    client.fetch(STARTUP_BY_ID_QUERY, { id })
   ]);
+
 
   if (!post) return notFound();
 
   const parsedContent = md.render(post?.pitch || "");
-
+  let editorPosts = []
   return (
     <>
       <section className="pink_container !min-h-[230px]">
@@ -73,7 +71,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
             <p className="category-tag">{post.category}</p>
           </div>
 
-          <h3 className="text-30-bold">Pitch Details</h3>
+          <h3 className="text-30-bold">News Details</h3>
           {parsedContent ? (
             <article
               className="prose max-w-4xl font-work-sans break-all"
@@ -86,12 +84,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
         <hr className="divider" />
 
-        {editorPosts?.length > 0 && (
+        {post?.length > 0 && (
           <div className="max-w-4xl mx-auto">
             <p className="text-30-semibold">Editor Picks</p>
 
             <ul className="mt-7 card_grid-sm">
-              {editorPosts.map((post: StartupTypeCard, i: number) => (
+              {post.map((post: StartupTypeCard, i: number) => (
                 <StartupCard key={i} post={post} />
               ))}
             </ul>

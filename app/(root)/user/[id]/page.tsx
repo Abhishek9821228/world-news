@@ -6,6 +6,12 @@ import Image from "next/image";
 import UserStartups from "@/components/UserStartups";
 import { Suspense } from "react";
 import { StartupCardSkeleton } from "@/components/StartupCard";
+import {
+  PLAYLIST_BY_SLUG_QUERY,
+  STARTUP_BY_ID_QUERY,
+} from "@/sanity/lib/queries";
+import jsPDF from "jspdf";
+import PayoutButton from "@/components/PayoutButton";
 
 export const experimental_ppr = true;
 
@@ -15,6 +21,16 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   const user = await client.fetch(AUTHOR_BY_ID_QUERY, { id });
   if (!user) return notFound();
+  const post = await Promise.all([
+      client.fetch(STARTUP_BY_ID_QUERY, { id })
+    ]);
+  
+  let total = 0;
+  const PAYOUT_RATE = 10; // Constant payout rate (₹10 per article)
+  const calculateTotalPayout = (articleCount: any) => {
+    return articleCount * PAYOUT_RATE;
+  };
+
 
   return (
     <>
@@ -38,11 +54,14 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
             @{user?.username}
           </p>
           <p className="mt-1 text-center text-14-normal">{user?.bio}</p>
+
+          <p className="text-30-extrabold mt-2 text-center">Total Payout: {calculateTotalPayout(post.length)}</p>
+          <PayoutButton />
         </div>
 
         <div className="flex-1 flex flex-col gap-5 lg:-mt-5">
           <p className="text-30-bold">
-            {session?.id === id ? "Your" : "All"} Startups
+            {session?.id === id ? "Your" : "All"} News
           </p>
           <ul className="card_grid-sm">
             <Suspense fallback={<StartupCardSkeleton />}>
